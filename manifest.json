@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    "name": "Linkify Nouns",
+    "description": "Replaces concrete nouns on a webpage with links to a mock database",
+    "version": "1.0",
+    "permissions": [
+      "activeTab",
+      "storage"
+    ],
+    "browser_action": {
+      "default_title": "Linkify Nouns"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "js": [
+          "contentScript.js"
+        ]
+      }
+    ]
+  }
+  
