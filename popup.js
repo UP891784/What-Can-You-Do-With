@@ -1,35 +1,51 @@
-document.addEventListener("DOMContentLoaded", function(event) {
-    // Get the noun from the URL parameters
-    const searchParams = new URLSearchParams(window.location.search);
-    const noun = searchParams.get('noun');
-    
-    // Get the details for the noun
-    const details = getNounDetails(noun);
-    
-    // Display the details on the page
-    const nounDetailsElement = document.getElementById('noun-details');
-    nounDetailsElement.innerHTML = `
-      <p>Name: ${details.name}</p>
-      <p>Description: ${details.description}</p>
-      <p>Uses: ${details.uses.join(', ')}</p>
-    `;
-  });
-  
-  function getNounDetails(noun) {
-    // Replace this with code to get the details for the noun from your database
-    // For this example, we'll just return some hardcoded data
-    if (noun === 'tomato') {
-      return {
-        name: 'Tomato',
-        description: 'The tomato is the edible, often red, berry of the plant Solanum lycopersicum, commonly known as a tomato plant.',
-        uses: ['cooking', 'salads', 'sauces']
-      };
-    } else {
-      return {
-        name: 'Unknown',
-        description: 'Sorry, we do not have any details for this noun.',
-        uses: []
-      };
-    }
-  }
-  
+// Get references to the UI elements
+const searchInput = document.getElementById('search');
+const searchBtn = document.getElementById('searchBtn');
+const resultsDiv = document.getElementById('results');
+
+// Get the search query from the URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const searchQuery = urlParams.get('search');
+
+// If there's a search query, set it as the value of the search input and perform the search
+if (searchQuery) {
+  searchInput.value = searchQuery;
+  search();
+}
+
+// Add a listener to the search button
+searchBtn.addEventListener('click', search);
+
+// Create a context menu item to search for text
+chrome.contextMenus.create({
+  title: 'What Can You Do With "%s"',
+  contexts: ['selection'],
+  onclick: searchSelection
+});
+
+// Search for the entered text
+function search() {
+  const searchText = searchInput.value.toLowerCase();
+  const dataUrl = chrome.runtime.getURL('database.json');
+
+  fetch(dataUrl)
+    .then(response => response.json())
+    .then(data => {
+      const results = data.filter(item => item.noun.toLowerCase() === searchText);
+      if (results.length > 0) {
+        resultsDiv.innerHTML = results[0].uses;
+      } else {
+        resultsDiv.innerHTML = 'Nothing found in the database.';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+      resultsDiv.innerHTML = 'An error occurred while searching the database. Please try again later.';
+    });
+}
+
+// Search for the selected text in the context menu
+function searchSelection(info, tab) {
+  const searchText = info.selectionText.toLowerCase();
+  chrome.tabs.create({ url: `popup.html?search=${searchText}` });
+}

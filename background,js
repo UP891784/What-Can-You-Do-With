@@ -1,0 +1,15 @@
+console.log('Background script loaded');
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    title: 'What Can You Do With "%s"',
+    contexts: ['selection'],
+    onclick: searchSelection
+  });
+});
+
+// Search for the selected text in the context menu
+function searchSelection(info, tab) {
+  const searchText = info.selectionText.toLowerCase();
+  chrome.tabs.create({ url: `popup.html?search=${searchText}` });
+}
